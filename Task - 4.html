@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=\, initial-scale=1.0">
+  <title>Weather App</title>
+  <style>body {
+    font-family: Arial, sans-serif;
+    background-color: skyblue;
+  }
+  
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  h1 {
+    margin-top: 0;
+  }
+  
+  .search {
+    margin-bottom: 20px;
+  }
+  
+  .search input {
+    padding: 8px;
+    font-size: 16px;
+  }
+  
+  .search button {
+    padding: 8px 16px;
+    font-size: 16px;
+  }
+  
+  .weather {
+    border: 1px solid #ddd;
+    padding: 20px;
+  }
+  
+  .weather h2 {
+    margin-top: 0;
+  }
+  
+  .weather p {
+    margin: 5px 0;
+  }
+  
+  #temperature {
+    font-size: 24px;
+  }
+  
+  #description {
+    font-weight: bold;
+  }
+  
+  #weatherIcon {
+    width: 100px;
+    height: 100px;
+    margin: 10px auto;
+    display: block;
+  }
+  
+  .forecast {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .forecast-item {
+    flex-basis: 20%;
+    text-align: center;
+  }
+  
+  .forecast-item p {
+    font-size: 14px;
+  }
+  
+  .forecast-item img {
+    width: 50px;
+    height: 50px;
+    margin: 5px auto;
+    display: block;
+  }
+  </style>
+</head>
+<body>
+  <h2 align="center">Build a weather app using API,CSS & Javascript for LearnSmasher</h2>
+
+  <div class="container">
+    <h1>Weather App</h1>
+    <div class="search">
+      <input type="text" id="searchInput" placeholder="Enter location">
+      <button id="searchBtn">Search</button>
+    </div>
+    <div class="weather">
+      <h2 id="location"></h2>
+      <p id="date"></p>
+      <div id="currentWeather">
+        <p id="temperature"></p>
+        <p id="description"></p>
+        <!-- <img id="weatherIcon" src="" alt="Weather Icon"> -->
+      </div>
+      <div id="forecast"></div>
+    </div>
+  </div>
+
+  <script>
+  const searchBtn = document.getElementById('searchBtn');
+const searchInput = document.getElementById('searchInput');
+const locationElem = document.getElementById('location');
+const dateElem = document.getElementById('date');
+const temperatureElem = document.getElementById('temperature');
+const descriptionElem = document.getElementById('description');
+const weatherIconElem = document.getElementById('weatherIcon');
+const forecastElem = document.getElementById('forecast');
+
+const apiUrl = 'https://api.openweathermap.org/data/2.5';
+const apiKey = '1fbbb221c3641372157a12e7dae8d030';
+
+function formatDate(date) {
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString(undefined, options);
+}
+
+function formatDay(dayIndex) {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return days[dayIndex];
+}
+
+function fetchWeatherData(query) {
+  fetch(`${apiUrl}/weather?q=${query}&appid=${apiKey}&units=metric`)
+    .then(response => response.json())
+    .then(data => {
+      const location = data.name;
+      const currentDate = new Date();
+      const temperature = Math.round(data.main.temp);
+      const description = data.weather[0].description;
+      const icon = data.weather[0].icon;
+
+      locationElem.textContent = location;
+      dateElem.textContent = formatDate(currentDate);
+      temperatureElem.innerHTML = `${temperature}&deg;C`;
+      descriptionElem.textContent = description;
+      weatherIconElem.src = `https://openweathermap.org/img/w/${icon}.png`;
+    })
+    .catch(error => {
+      console.log('Error:', error);
+    });
+}
+
+function fetchForecastData(query) {
+  fetch(`${apiUrl}/forecast?q=${query}&appid=${apiKey}&units=metric`)
+    .then(response => response.json())
+    .then(data => {
+      const forecast = data.list.slice(0, 5);
+      forecastElem.innerHTML = '';
+
+      forecast.forEach(item => {
+        const date = new Date(item.dt_txt);
+        const day = formatDay(date.getDay());
+        const temperature = Math.round(item.main.temp);
+        const icon = item.weather[0].icon;
+
+        const forecastItem = document.createElement('div');
+        forecastItem.classList.add('forecast-item');
+        forecastItem.innerHTML = `
+          <p>${day}</p>
+          <img src="https://openweathermap.org/img/w/${icon}.png" alt="Weather Icon">
+          <p>${temperature}&deg;C</p>
+        `;
+
+        forecastElem.appendChild(forecastItem);
+      });
+    })
+    .catch(error => {
+      console.log('Error:', error);
+    });
+}
+
+searchBtn.addEventListener('click', () => {
+  const query = searchInput.value;
+  fetchWeatherData(query);
+  fetchForecastData(query);
+});
+
+  </script>
+  
+</body>
+</html>
